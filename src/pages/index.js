@@ -51,7 +51,6 @@ const Button = styled.button`
 
 const IndexPage = ({data}) => (
   <>
-    {console.log(data)}
     <SEO title="Home" />
     <Jumbo description={data.allSite.edges[0].node.siteMetadata.description} />
     <Products products={data.allStripeSku.edges} />>
