@@ -9,17 +9,34 @@ import { CartContext } from '../context'
 export default function Cart() {
     const { cart } = useContext(CartContext)
     const [total, setTotal] = useState(0)
+    const [stripe, setStripe] = useState()
 
     const getTotal = () => {
         setTotal(
-            cart.reduce((acc, current) => acc + current.price * current.qty, 0)
+            cart.reduce((acc, current) => acc + current.price * current.quantity, 0)
         )
     }
 
-    useEffect( () => {
+    useEffect(() => {
+        setStripe(
+            window.Stripe(process.env.STRIPE_PK, { betas: ['checkout_beta_4'] })
+        )
         getTotal()
     }, [])
-    
+
+    const handleSubmit = async (event) => {
+        event.preventDefault()
+        const { error } = await stripe.redirectToCheckout({
+            items: cart.map(({ sku, quantity }) => ({ sku, quantity })),
+            successUrl: 'http://localhost:8000/thanks',
+            cancelUrl: 'http://localhost:8000/cancel',
+        })
+
+        if(error) {
+            throw error
+        }
+    }
+
     return (
         <StyledCart>
             <h2>Carrito de compras</h2>
@@ -33,14 +50,13 @@ export default function Cart() {
                     </tr>
                     {cart.map(swag => (
                         <tr key={swag.sku}>
-                            {console.log(swag)}
                             <td>
                                 <img src={swag.metadata.img} alt={swag.name} />
                                 {swag.name}
                             </td>
                             <td>USD {priceFormat(swag.price)}</td>
-                            <td>{swag.qty}</td>
-                            <td>{priceFormat(swag.qty * swag.price)}</td>
+                            <td>{swag.quantity}</td>
+                            <td>{priceFormat(swag.quantity * swag.price)}</td>
                         </tr>
                     ))}
                 </tbody>
@@ -52,7 +68,7 @@ export default function Cart() {
                 </div>
                 <div>
                     <Link to="/"><Button type="outline">Volver</Button></Link>
-                    <Button>Comprar</Button>
+                    <Button onClick={handleSubmit} disabled={cart.length === 0}>Comprar</Button>
                 </div>
             </nav>
         </StyledCart>

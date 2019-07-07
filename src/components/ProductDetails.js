@@ -12,7 +12,7 @@ export default function ProductDetails({ price, id, product: { name, metadata } 
     const { addToCart } = useContext(CartContext)
 
     const handleSubmit = () => {
-        addToCart({price, sku: id, name, metadata, qty})
+        addToCart({price, sku: id, name, metadata, quantity: qty})
     }
 
     return (
